@@ -1,11 +1,19 @@
 #include <iostream>
-#include <vector.>
+#include <vector>
+
+
+
+
+
 
 namespace EventSystem
 {
+	class Event;
+
 	class System
 	{
 	private:
+		friend class Event;
 		std::string name;
 		int32_t descriptor;
 		int16_t index;
@@ -14,8 +22,11 @@ namespace EventSystem
 	public:
 		System(std::string);
 		~System();
+	public:
 		void addEvent(Event*);
+		Event* getEvent();
 		bool isActive();
+		void serialize();
 	};
 
 	class Event
@@ -29,7 +40,7 @@ namespace EventSystem
 			JOYSTICK
 		};
 		DeviceType dType;
-		System* system;
+		System* system = nullptr;
 	public:
 		Event(DeviceType);
 		DeviceType getdType();
@@ -46,7 +57,7 @@ namespace EventSystem
 			}
 			return stream << result;
 		}
-		void bind(System*, Event*)
+		void bind(System*, Event*);
 	};
 
 	class KeyboardEvent : public Event
@@ -70,7 +81,7 @@ namespace EventSystem
 
 	System::~System()
 	{
-
+		 //TODO::
 	}
 
 	void System::addEvent(Event* e)
@@ -91,11 +102,51 @@ namespace EventSystem
 		return true;
 	}
 
+	void System::serialize()
+	{
+
+	}
+
+	Event::Event(DeviceType dType)
+	{
+		this->dType = dType;
+	}
+
+	void Event::bind(System* system, Event* e)
+	{
+		this->system = system;
+		this->system->events.push_back(e);
+	}
+
+
+	Event::DeviceType Event::getdType()
+	{
+		return this->dType;
+	}
+
+	KeyboardEvent::KeyboardEvent(int16_t keyCode, bool pressed, bool released)
+		:
+		Event(Event::KEYBOARD),
+		keyCode(keyCode),
+		pressed(pressed),
+		released(released) {}
+
+
 
 }
 
+using namespace EventSystem;
+
 int main(int argc, char** argv)
 {
+	System Foo("Foo");
+	Event* e = new KeyboardEvent('a', true, false);
+
+	Foo.addEvent(e);
+	KeyboardEvent* kb = static_cast<KeyboardEvent*>(Foo.getEvent());
+
+	Foo.serialize();
+
 	(void)argc;
 	(void)argv;
 	return 0;
