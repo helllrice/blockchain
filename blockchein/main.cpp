@@ -1,9 +1,151 @@
 #include <iostream>
 #include <vector>
 
+#define abstract
+
+namespace Core
+{
+	namespace Util
+	{
+
+	}
+
+	void encode(std::vector<int8_t>* buffer, int16_t iterator, T value)
+	{
+		for (unsigned i = 0; i < sizeof T; i++)
+		{
+			(*buffer)[(*iterator)++] = value >> ((sizeof T * 8) - 8) - ((i == 0) ? j : j +=8));
+		}
+		
+	}
+}
 
 
+namespace ObjectModel
+{
 
+	enum class Wrapper
+	{
+		PRIMITIVE = 1,
+		ARRAY,
+		STRING,
+		OBJECT
+	};
+
+	enum class Type : int8_t
+	{
+		I8 = 1,
+		I16,
+		I32,
+		I64,
+
+		U8,
+		U16,
+		U32,
+		U64,
+
+		FLOAT,
+		DOUBLE,
+
+		BOOL
+
+	};
+
+	abstract class root
+	{
+	protected:
+		std::string name;
+		int16_t nameLength;
+		int8_t wrapper;
+		int32_t size;
+	protected:
+		Root();
+	public:
+		int32_t getSize();
+		void setName(std::string);
+		std::string getName();
+		virtual void pack(std::vector<int8_t>*, int16_t*);
+	};
+
+	class Primitive : public Root
+	{
+	private:
+		int8_t type = 0;
+		std::vector<int8_t>* data = nullptr;
+
+	private:
+		Primitive();
+
+	public:
+		static Primitive* create(std::string name, Type type, int32_t value);
+		void pack(std::vector<int8_t>*, int16_t*);
+	};
+
+	class Array : public Root
+	{
+
+	};
+
+	class Object : public Root
+	{
+
+	};
+	
+
+	//definition 
+	Root::Root()
+		:
+		name("unknown"),
+		Wrapper(0),
+		nameLength(0),
+		size(sizeof nameLength + sizeof Wrapper + sizeof size) {}
+
+	void Root::setName(std::string name)
+	{
+		this->name = name;
+		nameLength = (int16_t)name.length();
+		size += nameLength;
+	}
+
+	 int32_t Root::getSize()
+	 {
+		 return size;
+	 }
+
+	 void Root::pack(std::vector<int8_t>*, int16_t*)
+	 {
+
+	 }
+
+	 std::string Root::getName()
+	 {
+		 return name;
+	 }
+
+	 Primitive::Primitive()
+	 {
+		 size += sizeof type;
+	 }
+
+	 Primitive* Primitive::createI32(std::string name, Type type, int32_t value)
+	 {
+		 Primitive* p = new Primitive();
+		 p->setName(name);
+		 p->wrapper = static_cast<int8_t>(Wrapper::PRIMITIVE);
+		 p->type = static_cast<int8_t>(type);
+		 p->data = new std::vector<int8_t>(sizeof value);
+		 int16_t iterator = 0;
+		 Core::encode(p->data, &iterator, value);
+
+		 return p;
+
+	 }
+
+	 void Primitive::pack(std::vector<int8_t>*, int16_t*)
+	 {
+		
+	 }
+}
 
 
 namespace EventSystem
@@ -136,9 +278,16 @@ namespace EventSystem
 }
 
 using namespace EventSystem;
+using namespace ObjectModel;
+
 
 int main(int argc, char** argv)
 {
+
+	int32_t foo = 5;
+	Primitive* p = Primitive::createI32("int32", Type::I32, foo)
+
+#if 0
 	System Foo("Foo");
 	Event* e = new KeyboardEvent('a', true, false);
 
@@ -147,6 +296,7 @@ int main(int argc, char** argv)
 
 	Foo.serialize();
 
+#endif
 	(void)argc;
 	(void)argv;
 	return 0;
